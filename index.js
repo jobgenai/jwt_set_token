@@ -1,7 +1,7 @@
-const express = require("express");
-const cors = require("cors");
-const cookieParser = require("cookie-parser");
-const bodyParser = require("body-parser");
+import express from 'express';
+import cors from 'cors';
+import cookieParser from 'cookie-parser';
+import bodyParser from 'body-parser';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -28,8 +28,8 @@ app.post("/set-token", (req, res) => {
 
   res.cookie("jwt_token", token, {
     httpOnly: true,
-    secure: true,              // Send only over HTTPS
-    sameSite: "Strict",        // Prevent CSRF
+    secure: true,       // Send only over HTTPS
+    sameSite: "Strict", // Prevent CSRF
     maxAge: 60 * 60 * 1000, // 1 hour
   });
 
@@ -38,7 +38,7 @@ app.post("/set-token", (req, res) => {
 
 // 🧪 GET /get-token — Just to test cookie
 app.get("/get-token", (req, res) => {
-  const token = req.cookies.jwt_token;
+  const token = req.cookies?.jwt_token;
 
   if (!token) {
     return res.status(401).json({ error: "No JWT cookie found" });
