@@ -23,14 +23,14 @@ app.post("/set-token", (req, res) => {
     return res.status(400).json({ error: "Missing token in body" });
   }
 
-  res.cookie("jobgen_jwt", token, {
-    httpOnly: true,
-    secure: true,
-    sameSite: "None",
-    domain: ".jobgen.ai", // Crucial for cross-subdomain sharing
-    path: "/",
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
-  });
+res.cookie("jobgen_jwt", token, {
+  httpOnly: true,
+  secure: true,
+  sameSite: "None",
+  domain: ".jobgen.ai", // Make sure this matches your front-end domain
+  path: "/",
+  expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+});
 
   res.status(200).json({ message: "JWT cookie set successfully" });
 });
