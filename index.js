@@ -9,29 +9,28 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS setup
+// ✅ CORS — apply to all requests, including preflight
 const allowedOrigins = ["https://www.jobgen.ai"];
-
 app.use(cors({
-  origin: allowedOrigins,
-  credentials: true,
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true
 }));
 
-app.options('*', cors({
+// ✅ Handle preflight requests
+app.options("*", cors({
   origin: allowedOrigins,
-  credentials: true,
+  credentials: true
 }));
-
-// ✅ Debug origin logging (best placed before routes)
-app.use((req, res, next) => {
-  console.log("🛰️ Incoming origin:", req.headers.origin);
-  next();
-});
 
 // 🔐 Set JWT as secure cookie
 app.post("/set-token", (req, res) => {
   const token = req.body.token;
-
   if (!token) {
     return res.status(400).json({ error: "Missing token in body" });
   }
@@ -40,15 +39,15 @@ app.post("/set-token", (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: 'None',
-    domain: '.jobgen.ai', // ✅ CORRECTED
+    domain: '.jobgen.ai',   // ✅ This is correct!
     path: '/',
-    maxAge: 24 * 60 * 60 * 1000, // 1 day
+    maxAge: 24 * 60 * 60 * 1000
   });
 
-  return res.status(200).json({ message: "JWT cookie set successfully" });
+  res.status(200).json({ message: "JWT cookie set successfully" });
 });
 
-// 🔍 Optional: Debug cookie reader
+// 🧪 Read token
 app.get("/get-token", (req, res) => {
   const token = req.cookies?.jobgen_jwt;
   if (!token) {
@@ -57,7 +56,13 @@ app.get("/get-token", (req, res) => {
   res.status(200).json({ token });
 });
 
-// 🚀 Start the server
+// 🛰️ Debug incoming origins
+app.use((req, res, next) => {
+  console.log("🛰️ Incoming origin:", req.headers.origin);
+  next();
+});
+
+// 🚀 Start
 app.listen(PORT, () => {
   console.log(`✅ JWT API running on port ${PORT}`);
 });
