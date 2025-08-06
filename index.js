@@ -10,16 +10,21 @@ app.use(express.json());
 app.use(cookieParser());
 
 // ✅ CORS — apply to all requests, including preflight
-const allowedOrigins = ["https://www.jobgen.ai"];
+const allowedOrigins = [
+  "https://www.jobgen.ai",
+  "https://jobgen.ai",        // if redirecting or accessible without www
+  "https://app.jobgen.ai",    // if you serve frontend separately
+];
+
 app.use(cors({
   origin: function (origin, callback) {
     if (!origin || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
-      callback(new Error('Not allowed by CORS'));
+      callback(new Error("CORS not allowed for this origin: " + origin));
     }
   },
-  credentials: true
+  credentials: true,
 }));
 
 // ✅ Handle preflight requests
