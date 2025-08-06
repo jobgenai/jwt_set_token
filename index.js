@@ -6,16 +6,29 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // ✅ Middleware
-app.use(express.json()); // replaces body-parser.json()
+app.use(express.json());
 app.use(cookieParser());
 
-// ✅ CORS setup: Allow frontend domain and allow cookies
+// ✅ CORS setup
+const allowedOrigins = ["https://www.jobgen.ai"];
+
 app.use(cors({
-  origin: "https://www.jobgen.ai", // Bubble live domain
+  origin: allowedOrigins,
   credentials: true,
 }));
 
-// 🔐 POST /set-token — Set JWT as secure cookie
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
+// ✅ Debug origin logging (best placed before routes)
+app.use((req, res, next) => {
+  console.log("🛰️ Incoming origin:", req.headers.origin);
+  next();
+});
+
+// 🔐 Set JWT as secure cookie
 app.post("/set-token", (req, res) => {
   const token = req.body.token;
 
@@ -23,19 +36,19 @@ app.post("/set-token", (req, res) => {
     return res.status(400).json({ error: "Missing token in body" });
   }
 
-res.cookie('jobgen_jwt', token, {
-  httpOnly: true,
-  secure: true,
-  sameSite: 'None',
-  domain: '.www.jobgen.ai',
-  path: '/',
-  maxAge: 24 * 60 * 60 * 1000
+  res.cookie('jobgen_jwt', token, {
+    httpOnly: true,
+    secure: true,
+    sameSite: 'None',
+    domain: '.jobgen.ai', // ✅ CORRECTED
+    path: '/',
+    maxAge: 24 * 60 * 60 * 1000, // 1 day
+  });
+
+  return res.status(200).json({ message: "JWT cookie set successfully" });
 });
 
-  res.status(200).json({ message: "JWT cookie set successfully" });
-});
-
-// 🧪 Optional: Debug route to read the token
+// 🔍 Optional: Debug cookie reader
 app.get("/get-token", (req, res) => {
   const token = req.cookies?.jobgen_jwt;
   if (!token) {
