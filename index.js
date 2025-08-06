@@ -1,24 +1,21 @@
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import bodyParser from 'body-parser';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Middleware
+// ✅ Middleware
+app.use(express.json()); // replaces body-parser.json()
 app.use(cookieParser());
-app.use(bodyParser.json());
 
-// Allow only JobGen.AI frontend and credentials (cookies)
-app.use(
-  cors({
-    origin: "https://jobgen.ai/version-test",
-    credentials: true,
-  })
-);
+// ✅ CORS setup: Allow frontend domain and allow cookies
+app.use(cors({
+  origin: "https://www.jobgen.ai", // Bubble live domain
+  credentials: true,
+}));
 
-// 🔐 POST /set-token — Set secure cookie from frontend
+// 🔐 POST /set-token — Set JWT as secure cookie
 app.post("/set-token", (req, res) => {
   const token = req.body.token;
 
@@ -26,27 +23,28 @@ app.post("/set-token", (req, res) => {
     return res.status(400).json({ error: "Missing token in body" });
   }
 
-  res.cookie("jwt_token", token, {
+  res.cookie("jobgen_jwt", token, {
     httpOnly: true,
-    secure: true,       // Send only over HTTPS
-    sameSite: "Strict", // Prevent CSRF
-    maxAge: 60 * 60 * 1000, // 1 hour
+    secure: true,
+    sameSite: "None",
+    domain: ".jobgen.ai", // Crucial for cross-subdomain sharing
+    path: "/",
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
   });
 
   res.status(200).json({ message: "JWT cookie set successfully" });
 });
 
-// 🧪 GET /get-token — Just to test cookie
+// 🧪 Optional: Debug route to read the token
 app.get("/get-token", (req, res) => {
-  const token = req.cookies?.jwt_token;
-
+  const token = req.cookies?.jobgen_jwt;
   if (!token) {
     return res.status(401).json({ error: "No JWT cookie found" });
   }
-
   res.status(200).json({ token });
 });
 
+// 🚀 Start the server
 app.listen(PORT, () => {
-  console.log(`JWT server running on http://localhost:${PORT}`);
+  console.log(`✅ JWT API running on port ${PORT}`);
 });
