@@ -27,7 +27,6 @@ res.cookie('jobgen_jwt', token, {
   httpOnly: true,
   secure: true,
   sameSite: 'None',
-  domain: '.jobgen.ai',  // ✅ important if your frontend is hosted here
   path: '/',
   maxAge: 24 * 60 * 60 * 1000
 });
