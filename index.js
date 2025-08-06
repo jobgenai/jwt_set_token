@@ -58,7 +58,7 @@ app.post("/set-token", (req, res) => {
     httpOnly: true,
     secure: true,
     sameSite: 'None',
-    domain: '.jobgen.ai', // ✅ allows www.jobgen.ai and jobgen.ai
+    domain: '.www.jobgen.ai', // ✅ allows www.jobgen.ai and jobgen.ai
     path: '/',
     maxAge: 24 * 60 * 60 * 1000 // 1 day
   });
